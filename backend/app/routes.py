@@ -4,7 +4,7 @@ from app.models import Book, User
 import sqlalchemy as sa 
 from app.utils import extract_metadata, delete_file
 import os
-from flask_jwt_extended import create_access_token
+from flask_jwt_extended import create_access_token, create_refresh_token, get_jwt_identity, jwt_required
 
 
 @app.route('/')
@@ -113,6 +113,14 @@ def login():
         return jsonify({'error': 'incorrect password'}), 401
 
     access_token = create_access_token(identity=user.id)
+    refresh_token = create_refresh_token(identity=user.id)
+    return jsonify(access_token=access_token, refresh_token=refresh_token)
+
+@app.route('/refresh', methods=['POST'])
+@jwt_required(refresh=True)
+def refresh():
+    identity = get_jwt_identity()
+    access_token = create_access_token(identity=identity)
     return jsonify(access_token=access_token)
 
 @app.route('/register', methods=['POST'])
